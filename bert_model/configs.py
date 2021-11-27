@@ -52,6 +52,9 @@ class Config(object):
         # Pickled Dataframes
         self.sentences_path = self.data_dir.joinpath('sentences.pkl')
         self.label_path = self.data_dir.joinpath('labels.pkl')
+
+        #話者情報を収録したファイルの定義
+        self.speaker_path = self.data_dir.joinpath('speakers.pkl')
         self.sentence_length_path = self.data_dir.joinpath('sentence_length.pkl')
         self.conversation_length_path = self.data_dir.joinpath('conversation_length.pkl')
 

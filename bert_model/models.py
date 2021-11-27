@@ -20,13 +20,14 @@ class bc_RNN(nn.Module):
         context_input_size = (config.num_layers
                               * config.encoder_hidden_size)
 
-        self.context_encoder = layer.ContextRNN(context_input_size,
+
+        self.context_encoder = layer.ContextRNN(context_input_size+1,
                                                  config.context_size,
                                                  config.rnn,
                                                  config.num_layers,
                                                  config.dropout)
-
-        self.context2decoder = layer.FeedForward(config.context_size,
+        #話者情報を追加
+        self.context2decoder = layer.FeedForward(config.context_size+1,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -38,7 +39,8 @@ class bc_RNN(nn.Module):
                                                  isActivation=False)
         self.dropoutLayer = nn.Dropout(p=config.dropout)
 
-    def forward(self, input_sentences, input_sentence_length, input_conversation_length, input_masks):
+    #話者情報を追加
+    def forward(self, input_speakers,  input_sentences, input_sentence_length, input_conversation_length, input_masks):
         """
         Args:
             input_sentences: (Variable, LongTensor) [num_sentences, seq_len]
@@ -92,6 +94,10 @@ class bc_RNN(nn.Module):
 
         context_outputs = self.dropoutLayer(context_outputs)
 
+        #話者情報の次元数を調整
+        input_speakers = input_speakers.view(-1,1)
+        #話者情報を追加
+        context_outputs = torch.cat([context_outputs, input_speakers])
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 

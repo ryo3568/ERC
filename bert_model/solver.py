@@ -110,7 +110,8 @@ class Solver(object):
             n_total_words = 0
             before_gradient = None
 
-            for batch_i, (conversations, labels, conversation_length, sentence_length, type_ids, masks) in enumerate(tqdm(self.train_data_loader, ncols=80)):
+            #話者情報を追加
+            for batch_i, (conversations, labels, speakers, conversation_length, sentence_length, type_ids, masks) in enumerate(tqdm(self.train_data_loader, ncols=80)):
                 # conversations: (batch_size) list of conversations
                 #   conversation: list of sentences
                 #   sentence: list of tokens
@@ -122,6 +123,9 @@ class Solver(object):
                 # flatten input and target conversations
                 input_sentences = [sent for conv in input_conversations for sent in conv]
                 input_labels = [label for utt in labels for label in utt]
+
+                #話者情報を追加
+                input_speakers = [speaker for utt in speakers for speaker in utt]
                 input_sentence_length = [l for len_list in sentence_length for l in len_list]
                 input_conversation_length = [l for l in conversation_length]
                 input_masks = [mask for conv in masks for mask in conv]
@@ -130,6 +134,9 @@ class Solver(object):
                 # transfering the input to cuda
                 input_sentences = to_var(torch.LongTensor(input_sentences))
                 input_labels = to_var(torch.LongTensor(input_labels))
+
+                #話者情報を追加
+                input_speakers = to_var(torch.LongTensor(input_speakers))
                 input_sentence_length = to_var(torch.LongTensor(input_sentence_length))
                 input_conversation_length = to_var(torch.LongTensor(input_conversation_length))
                 input_masks = to_var(torch.LongTensor(input_masks))
@@ -138,6 +145,8 @@ class Solver(object):
                 self.optimizer.zero_grad()
 
                 sentence_logits = self.model(
+                    #話者情報を追加
+                    input_speakers,
                     input_sentences,
                     input_sentence_length,
                     input_conversation_length,
@@ -209,7 +218,8 @@ class Solver(object):
 
         self.model.eval()
         batch_loss_history, predictions, ground_truth = [], [], []
-        for batch_i, (conversations, labels, conversation_length, sentence_length, type_ids, masks) in enumerate(data_loader):
+        #話者情報を追加
+        for batch_i, (conversations, labels, speakers, conversation_length, sentence_length, type_ids, masks) in enumerate(data_loader):
             # conversations: (batch_size) list of conversations
             #   conversation: list of sentences
             #   sentence: list of tokens
@@ -221,6 +231,9 @@ class Solver(object):
             # flatten input and target conversations
             input_sentences = [sent for conv in input_conversations for sent in conv]
             input_labels = [label for conv in labels for label in conv]
+
+            #話者情報を追加
+            input_speakers = [speaker for conv in speakers for speaker in conv]
             input_sentence_length = [l for len_list in sentence_length for l in len_list]
             input_conversation_length = [l for l in conversation_length]
             input_masks = [mask for conv in masks for mask in conv]
@@ -230,11 +243,15 @@ class Solver(object):
                 # transfering the input to cuda
                 input_sentences = to_var(torch.LongTensor(input_sentences))
                 input_labels = to_var(torch.LongTensor(input_labels))
+                #話者情報を追加
+                input_speakers = to_var(torch.LongTensor(input_speakers))
                 input_sentence_length = to_var(torch.LongTensor(input_sentence_length))
                 input_conversation_length = to_var(torch.LongTensor(input_conversation_length))
                 input_masks = to_var(torch.LongTensor(input_masks))
 
             sentence_logits = self.model(
+                #話者情報を追加
+                input_speakers,
                 input_sentences,
                 input_sentence_length,
                 input_conversation_length,

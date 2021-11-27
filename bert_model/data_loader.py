@@ -8,12 +8,16 @@ from pytorch_pretrained_bert.tokenization import BertTokenizer
 SEQ_LEN = 30
 
 class DialogDataset(Dataset):
-    def __init__(self, conversations, labels, conversation_length, sentence_length, data=None):
+    #話者情報を追加
+    def __init__(self, conversations, labels, speakers, conversation_length, sentence_length, data=None):
 
         # [total_data_size, max_conversation_length, max_sentence_length]
         # tokenized raw text of sentences
         self.conversations = conversations
         self.labels = labels
+
+        #話者情報を追加
+        self.speakers = speakers
 
         # conversation length of each batch
         # [total_data_size]
@@ -97,29 +101,33 @@ class DialogDataset(Dataset):
         # [max_conversation_length, max_sentence_length]
         conversation = self.conversations[index]
         labels = self.labels[index]
+        
+        #話者情報を追加
+        speakers = self.speakers[index]
         conversation_length = self.conversation_length[index]
         sentence_length = self.sentence_length[index]
         type_id = self.type_ids[index]
         masks = self.masks[index]
 
-
-        return conversation, labels, conversation_length, sentence_length, type_id, masks
+        #話者情報を追加
+        return conversation, labels, speakers, conversation_length, sentence_length, type_id, masks
 
     def __len__(self):
         return self.len
 
 
 
-
-def get_loader(sentences, labels, conversation_length, sentence_length, batch_size=100, data=None, shuffle=True):
+#話者情報を追加
+def get_loader(sentences, labels, speakers, conversation_length, sentence_length, batch_size=100, data=None, shuffle=True):
     """Load DataLoader of given DialogDataset"""
 
-
-    dataset = DialogDataset(sentences, labels, conversation_length,
+    #話者情報を追加
+    dataset = DialogDataset(sentences, labels, speakers, conversation_length,
                             sentence_length, data=data)
 
-    for sentence, label in zip(sentences, labels):
-        assert(np.array(sentence).shape[0] == np.array(label).shape[0])
+    #話者情報の数を検査
+    for sentence, label, speaker in zip(sentences, labels, speakers):
+        assert(np.array(sentence).shape[0] == np.array(label).shape[0] and np.array(sentence).shape[0] == np.array(speaker).shape[0])
 
 
 
@@ -142,10 +150,12 @@ def get_loader(sentences, labels, conversation_length, sentence_length, batch_si
         data.sort(key=lambda x: x[2], reverse=True)
 
         # Separate
-        sentences, labels, conversation_length, sentence_length, type_id, mask = zip(*data)
+        #話者情報を追加
+        sentences, labels, speakers, conversation_length, sentence_length, type_id, mask = zip(*data)
 
         # return sentences, conversation_length, sentence_length.tolist()
-        return sentences, labels, conversation_length, sentence_length, type_id, mask
+        #話者情報を追加
+        return sentences, labels, speakers, conversation_length, sentence_length, type_id, mask
 
 
     data_loader = DataLoader(

@@ -107,6 +107,10 @@ if __name__ == '__main__':
         conv_sentences = [iemocap.videoSentence[vid] for vid in iemocap.vids[split_type]]
         conv_labels = [iemocap.videoLabels[vid]
                        for vid in iemocap.vids[split_type]]
+        
+        #話者のリストを作成
+        conv_speakers = [iemocap.videoSpeakers[vid]
+                       for vid in iemocap.vids[split_type]]
 
 
         print(f'Processing {split_type} dataset...')
@@ -121,14 +125,21 @@ if __name__ == '__main__':
         for idx, conv_len in enumerate(conversation_length):
             conv_labels[idx]=conv_labels[idx][:conv_len]
 
+        # fix speakers as per conversation_length
+        #男性 => 0  女性 => 1
+        for idx, conv_len in enumerate(conversation_length):
+            conv_speakers[idx] = conv_speakers[idx][:conv_len]
+            conv_speakers[idx] = [0 if speaker=='M' else 1 for speaker in conv_speakers[idx]]
+
         
         sentences, sentence_length = pad_sentences(
             conv_sentences,
             max_sentence_length=max_sent_len,
             max_conversation_length=max_conv_len)
 
-        for sentence_len, label in zip(conversation_length, conv_labels):
-            assert(sentence_len ==len(label))
+        #conv_speakersについても調べる
+        for sentence_len, label, speaker in zip(conversation_length, conv_labels, conv_speakers):
+            assert(sentence_len ==len(label) and sentence_len == len(speaker))
 
         
         print('Saving preprocessed data at', split_data_dir)
@@ -136,6 +147,9 @@ if __name__ == '__main__':
             'conversation_length.pkl'))
         to_pickle(sentences, split_data_dir.joinpath('sentences.pkl'))
         to_pickle(conv_labels, split_data_dir.joinpath('labels.pkl'))
+
+        #話者情報を収録したファイルの作成
+        to_pickle(conv_speakers, split_data_dir.joinpath('speakers.pkl'))
         to_pickle(sentence_length, split_data_dir.joinpath(
             'sentence_length.pkl'))
         to_pickle(iemocap.vids[split_type], split_data_dir.joinpath('video_id.pkl'))
