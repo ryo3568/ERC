@@ -53,6 +53,9 @@ class Config(object):
         self.sentences_path = self.data_dir.joinpath('sentences.pkl')
         self.label_path = self.data_dir.joinpath('labels.pkl')
 
+        #直前の感情系列を収録したファイルの定義
+        self.before_label_path = self.data_dir.joinpath('before_labels.pkl')
+
         #話者情報を収録したファイルの定義
         self.speaker_path = self.data_dir.joinpath('speakers.pkl')
         self.sentence_length_path = self.data_dir.joinpath('sentence_length.pkl')

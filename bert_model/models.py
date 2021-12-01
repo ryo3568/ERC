@@ -27,7 +27,8 @@ class bc_RNN(nn.Module):
                                                  config.num_layers,
                                                  config.dropout)
         #話者情報を追加
-        self.context2decoder = layer.FeedForward(config.context_size+1,
+        #直前の感情系列を追加
+        self.context2decoder = layer.FeedForward(config.context_size+2,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -40,7 +41,8 @@ class bc_RNN(nn.Module):
         self.dropoutLayer = nn.Dropout(p=config.dropout)
 
     #話者情報を追加
-    def forward(self, input_speakers,  input_sentences, input_sentence_length, input_conversation_length, input_masks):
+    #直前の感情系列を追加
+    def forward(self, input_before_labels, input_speakers,  input_sentences, input_sentence_length, input_conversation_length, input_masks):
         """
         Args:
             input_sentences: (Variable, LongTensor) [num_sentences, seq_len]
@@ -94,11 +96,15 @@ class bc_RNN(nn.Module):
 
         context_outputs = self.dropoutLayer(context_outputs)
 
+        #直前の感情系列の次元数を調整
+        input_before_labels = input_before_labels.view(-1,1)
+
         #話者情報の次元数を調整
         input_speakers = input_speakers.view(-1,1)
         #話者情報を追加
+        #直前の感情系列を追加
         #1次元目で結合
-        context_outputs = torch.cat([context_outputs, input_speakers], 1)
+        context_outputs = torch.cat([context_outputs, input_before_labels, input_speakers], 1)
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 

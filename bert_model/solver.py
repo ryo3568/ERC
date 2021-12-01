@@ -111,7 +111,8 @@ class Solver(object):
             before_gradient = None
 
             #話者情報を追加
-            for batch_i, (conversations, labels, speakers, conversation_length, sentence_length, type_ids, masks) in enumerate(tqdm(self.train_data_loader, ncols=80)):
+            #直前の感情系列を追加
+            for batch_i, (conversations, labels, before_labels, speakers, conversation_length, sentence_length, type_ids, masks) in enumerate(tqdm(self.train_data_loader, ncols=80)):
                 # conversations: (batch_size) list of conversations
                 #   conversation: list of sentences
                 #   sentence: list of tokens
@@ -124,6 +125,9 @@ class Solver(object):
                 input_sentences = [sent for conv in input_conversations for sent in conv]
                 input_labels = [label for utt in labels for label in utt]
 
+                #直前の感情系列を追加
+                input_before_labels = [before_label for utt in before_labels for before_label in utt]
+
                 #話者情報を追加
                 input_speakers = [speaker for utt in speakers for speaker in utt]
                 input_sentence_length = [l for len_list in sentence_length for l in len_list]
@@ -135,6 +139,8 @@ class Solver(object):
                 input_sentences = to_var(torch.LongTensor(input_sentences))
                 input_labels = to_var(torch.LongTensor(input_labels))
 
+                #直前の感情系列を追加
+                input_before_labels = to_var(torch.LongTensor(input_before_labels))
                 #話者情報を追加
                 input_speakers = to_var(torch.LongTensor(input_speakers))
                 input_sentence_length = to_var(torch.LongTensor(input_sentence_length))
@@ -145,6 +151,8 @@ class Solver(object):
                 self.optimizer.zero_grad()
 
                 sentence_logits = self.model(
+                    #直前の感情系列を追加
+                    input_before_labels,
                     #話者情報を追加
                     input_speakers,
                     input_sentences,
@@ -219,7 +227,8 @@ class Solver(object):
         self.model.eval()
         batch_loss_history, predictions, ground_truth = [], [], []
         #話者情報を追加
-        for batch_i, (conversations, labels, speakers, conversation_length, sentence_length, type_ids, masks) in enumerate(data_loader):
+        #直前の感情系列を追加
+        for batch_i, (conversations, labels, before_labels, speakers, conversation_length, sentence_length, type_ids, masks) in enumerate(data_loader):
             # conversations: (batch_size) list of conversations
             #   conversation: list of sentences
             #   sentence: list of tokens
@@ -232,6 +241,8 @@ class Solver(object):
             input_sentences = [sent for conv in input_conversations for sent in conv]
             input_labels = [label for conv in labels for label in conv]
 
+            #直前の感情系列を追加
+            input_before_labels = [before_label for conv in before_labels for before_label in conv]
             #話者情報を追加
             input_speakers = [speaker for conv in speakers for speaker in conv]
             input_sentence_length = [l for len_list in sentence_length for l in len_list]
@@ -243,6 +254,8 @@ class Solver(object):
                 # transfering the input to cuda
                 input_sentences = to_var(torch.LongTensor(input_sentences))
                 input_labels = to_var(torch.LongTensor(input_labels))
+                #直前の感情系列を追加
+                input_before_labels = to_var(torch.LongTensor(input_before_labels))
                 #話者情報を追加
                 input_speakers = to_var(torch.LongTensor(input_speakers))
                 input_sentence_length = to_var(torch.LongTensor(input_sentence_length))
@@ -250,6 +263,8 @@ class Solver(object):
                 input_masks = to_var(torch.LongTensor(input_masks))
 
             sentence_logits = self.model(
+                #直前の感情系列を追加
+                input_before_labels,
                 #話者情報を追加
                 input_speakers,
                 input_sentences,

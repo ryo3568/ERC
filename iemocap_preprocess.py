@@ -97,7 +97,11 @@ if __name__ == '__main__':
     max_vocab_size = args.max_vocab_size
     min_freq = args.min_vocab_frequency
 
-    
+    def create_before_labels(seq):
+        res = [2]
+        for v in range(len(seq)-1):
+            res.append(seq[v])
+        return res
 
     def to_pickle(obj, path):
         with open(path, 'wb') as f:
@@ -108,6 +112,10 @@ if __name__ == '__main__':
         conv_labels = [iemocap.videoLabels[vid]
                        for vid in iemocap.vids[split_type]]
         
+        #直前の感情系列の作成
+        conv_before_labels = [create_before_labels(iemocap.videoLabels[vid]) 
+                              for vid in iemocap.vids[split_type]]
+
         #話者のリストを作成
         conv_speakers = [iemocap.videoSpeakers[vid]
                        for vid in iemocap.vids[split_type]]
@@ -125,6 +133,10 @@ if __name__ == '__main__':
         for idx, conv_len in enumerate(conversation_length):
             conv_labels[idx]=conv_labels[idx][:conv_len]
 
+        # fix labels as per conversation_length
+        for idx, conv_len in enumerate(conversation_length):
+            conv_before_labels[idx] = conv_before_labels[idx][:conv_len]
+
         # fix speakers as per conversation_length
         #男性 => 0  女性 => 1
         for idx, conv_len in enumerate(conversation_length):
@@ -137,9 +149,9 @@ if __name__ == '__main__':
             max_sentence_length=max_sent_len,
             max_conversation_length=max_conv_len)
 
-        #conv_speakersについても調べる
-        for sentence_len, label, speaker in zip(conversation_length, conv_labels, conv_speakers):
-            assert(sentence_len ==len(label) and sentence_len == len(speaker))
+        #conv_speakers, conv_before_labelsについても調べる
+        for sentence_len, label, speaker, before_label in zip(conversation_length, conv_labels, conv_speakers, conv_before_labels):
+            assert(sentence_len ==len(label) and sentence_len == len(speaker) and sentence_len == len(before_label))
 
         
         print('Saving preprocessed data at', split_data_dir)
@@ -148,8 +160,12 @@ if __name__ == '__main__':
         to_pickle(sentences, split_data_dir.joinpath('sentences.pkl'))
         to_pickle(conv_labels, split_data_dir.joinpath('labels.pkl'))
 
+        #直前の感情系列を収録したファイルの作成
+        to_pickle(conv_before_labels, split_data_dir.joinpath('before_labels.pkl'))
+        
         #話者情報を収録したファイルの作成
         to_pickle(conv_speakers, split_data_dir.joinpath('speakers.pkl'))
+
         to_pickle(sentence_length, split_data_dir.joinpath(
             'sentence_length.pkl'))
         to_pickle(iemocap.vids[split_type], split_data_dir.joinpath('video_id.pkl'))
