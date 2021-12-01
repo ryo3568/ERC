@@ -21,7 +21,7 @@ class bc_RNN(nn.Module):
                               * config.encoder_hidden_size)
 
 
-        self.context_encoder = layer.ContextRNN(context_input_size+1,
+        self.context_encoder = layer.ContextRNN(context_input_size,
                                                  config.context_size,
                                                  config.rnn,
                                                  config.num_layers,
@@ -97,7 +97,8 @@ class bc_RNN(nn.Module):
         #話者情報の次元数を調整
         input_speakers = input_speakers.view(-1,1)
         #話者情報を追加
-        context_outputs = torch.cat([context_outputs, input_speakers])
+        #1次元目で結合
+        context_outputs = torch.cat([context_outputs, input_speakers], 1)
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 
