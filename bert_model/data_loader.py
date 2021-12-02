@@ -156,7 +156,8 @@ def get_loader(sentences, labels, before_labels, speakers, conversation_length, 
             - source_length (LongTensor): [batch_size, max_conversation_length]
         """
         # Sort by conversation length (descending order) to use 'pack_padded_sequence'
-        data.sort(key=lambda x: x[2], reverse=True)
+        #インデックスの修正
+        data.sort(key=lambda x: x[4], reverse=True)
 
         # Separate
         #話者情報を追加

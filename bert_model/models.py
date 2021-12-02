@@ -28,7 +28,7 @@ class bc_RNN(nn.Module):
                                                  config.dropout)
         #話者情報を追加
         #直前の感情系列を追加
-        self.context2decoder = layer.FeedForward(config.context_size+2,
+        self.context2decoder = layer.FeedForward(config.context_size+1+6,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -97,7 +97,7 @@ class bc_RNN(nn.Module):
         context_outputs = self.dropoutLayer(context_outputs)
 
         #直前の感情系列の次元数を調整
-        input_before_labels = input_before_labels.view(-1,1)
+        input_before_labels = input_before_labels.view(-1,6)
 
         #話者情報の次元数を調整
         input_speakers = input_speakers.view(-1,1)

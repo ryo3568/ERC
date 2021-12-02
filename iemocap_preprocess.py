@@ -101,6 +101,9 @@ if __name__ == '__main__':
         res = [2]
         for v in range(len(seq)-1):
             res.append(seq[v])
+        #one-hot 表現に変換
+        #listに戻す
+        res = np.eye(6)[res].tolist()
         return res
 
     def to_pickle(obj, path):

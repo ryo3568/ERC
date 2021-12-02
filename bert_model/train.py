@@ -57,7 +57,7 @@ if __name__ == '__main__':
             #直前の感情系列を追加
             before_labels=load_pickle(test_config.before_label_path),
             #話者情報を追加
-            speakers=load_pickle(test_config.speakers_path),
+            speakers=load_pickle(test_config.speaker_path),
             conversation_length=load_pickle(test_config.conversation_length_path),
             sentence_length=load_pickle(test_config.sentence_length_path),
             batch_size=test_config.eval_batch_size,
