@@ -231,3 +231,85 @@ class ContextRNN(BaseRNNEncoder):
 
         outputs, hidden = self.rnn(encoder_hidden, hidden)
         return outputs, hidden
+
+#感情Encoderの実装
+class EmotionRNN(BaseRNNEncoder):
+    def __init__(self, input_size, hidden_size, rnn=nn.GRU, num_layers=1, dropout=0.0,
+                 bidirectional=False, bias=True, batch_first=True):
+        """Context-level Encoder"""
+        super(EmotionRNN, self).__init__()
+
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.dropout = dropout
+        self.bidirectional = bidirectional
+        self.batch_first = batch_first
+        self.num_directions = 1
+
+        self.rnn = rnn(input_size=input_size,
+                       hidden_size=hidden_size,
+                       num_layers=num_layers,
+                       bias=bias,
+                       batch_first=batch_first,
+                       dropout=dropout,
+                       bidirectional=bidirectional)
+
+    def forward(self, encoder_hidden, conversation_length, hidden=None):
+        """
+        Args:
+            encoder_hidden (Variable, FloatTensor): [batch_size, max_len, num_layers * direction * hidden_size]
+            conversation_length (Variable, LongTensor): [batch_size]
+        Return:
+            outputs (Variable): [batch_size, max_seq_len, hidden_size]
+                - list of all hidden states
+            hidden ((tuple of) Variable): [num_layers*num_directions, batch_size, hidden_size]
+                - last hidden state
+                - (h, c) or h
+        """
+        batch_size, seq_len, _ = encoder_hidden.size()
+
+        # Sort for PackedSequence
+        conv_length_sorted, indices = conversation_length.sort(descending=True)
+        
+        conv_length_sorted = conv_length_sorted.data.tolist()
+        encoder_hidden_sorted = encoder_hidden.index_select(0, indices)
+
+        
+        rnn_input = pack_padded_sequence(
+            encoder_hidden_sorted, conv_length_sorted, batch_first=True)
+
+        hidden = self.init_h(batch_size, hidden=hidden)
+
+        self.rnn.flatten_parameters()
+        outputs, hidden = self.rnn(rnn_input, hidden)
+
+        # outputs: [batch_size, max_conversation_length, context_size]
+        outputs, outputs_length = pad_packed_sequence(
+            outputs, batch_first=True)
+
+        # reorder outputs and hidden
+        _, inverse_indices = indices.sort()
+        outputs = outputs.index_select(0, inverse_indices)
+
+        if self.use_lstm:
+            hidden = (hidden[0].index_select(1, inverse_indices),
+                      hidden[1].index_select(1, inverse_indices))
+        else:
+            hidden = hidden.index_select(1, inverse_indices)
+
+        # outputs: [batch, seq_len, hidden_size * num_directions]
+        # hidden: [num_layers * num_directions, batch, hidden_size]
+        return outputs, hidden
+
+    def step(self, encoder_hidden, hidden):
+
+        batch_size = encoder_hidden.size(0)
+        # encoder_hidden: [1, batch_size, hidden_size]
+        encoder_hidden = torch.unsqueeze(encoder_hidden, 1)
+
+        if hidden is None:
+            hidden = self.init_h(batch_size, hidden=None)
+
+        outputs, hidden = self.rnn(encoder_hidden, hidden)
+        return outputs, hidden

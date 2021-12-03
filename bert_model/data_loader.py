@@ -9,7 +9,7 @@ SEQ_LEN = 30
 
 class DialogDataset(Dataset):
     #話者情報を追加
-    #直前の感情系列を追加
+    #感情系列を追加
     def __init__(self, conversations, labels, before_labels, speakers, conversation_length, sentence_length, data=None):
 
         # [total_data_size, max_conversation_length, max_sentence_length]
@@ -17,7 +17,7 @@ class DialogDataset(Dataset):
         self.conversations = conversations
         self.labels = labels
 
-        #直前の感情系列を追加
+        #感情系列を追加
         self.before_labels = before_labels
         #話者情報を追加
         self.speakers = speakers
@@ -105,7 +105,7 @@ class DialogDataset(Dataset):
         conversation = self.conversations[index]
         labels = self.labels[index]
         
-        #直前の感情系列を追加
+        #感情系列を追加
         before_labels = self.before_labels[index]
 
         #話者情報を追加
@@ -116,7 +116,7 @@ class DialogDataset(Dataset):
         masks = self.masks[index]
 
         #話者情報を追加
-        #直前の感情系列を追加
+        #感情系列を追加
         return conversation, labels, before_labels, speakers, conversation_length, sentence_length, type_id, masks
 
     def __len__(self):
@@ -129,12 +129,12 @@ def get_loader(sentences, labels, before_labels, speakers, conversation_length, 
     """Load DataLoader of given DialogDataset"""
 
     #話者情報を追加
-    #直前の感情系列を追加
+    #感情系列を追加
     dataset = DialogDataset(sentences, labels, before_labels, speakers, conversation_length,
                             sentence_length, data=data)
 
     #話者情報の数を検査
-    #直前の感情系列の数を検査
+    #感情系列の数を検査
     for sentence, label, before_label,speaker in zip(sentences, labels, before_labels, speakers):
         assert(np.array(sentence).shape[0] == np.array(label).shape[0] and np.array(sentence).shape[0] == np.array(speaker).shape[0] and np.array(sentence).shape[0] == np.array(before_label).shape[0])
 
@@ -161,7 +161,7 @@ def get_loader(sentences, labels, before_labels, speakers, conversation_length, 
 
         # Separate
         #話者情報を追加
-        #直前の感情系列を追加
+        #感情系列を追加
         sentences, labels, before_labels, speakers, conversation_length, sentence_length, type_id, mask = zip(*data)
 
         # return sentences, conversation_length, sentence_length.tolist()

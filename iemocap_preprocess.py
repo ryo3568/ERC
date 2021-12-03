@@ -97,6 +97,7 @@ if __name__ == '__main__':
     max_vocab_size = args.max_vocab_size
     min_freq = args.min_vocab_frequency
 
+    #感情ラベルの作成
     def create_before_labels(seq):
         res = [2]
         for v in range(len(seq)-1):
@@ -115,7 +116,7 @@ if __name__ == '__main__':
         conv_labels = [iemocap.videoLabels[vid]
                        for vid in iemocap.vids[split_type]]
         
-        #直前の感情系列の作成
+        #感情系列の作成
         conv_before_labels = [create_before_labels(iemocap.videoLabels[vid]) 
                               for vid in iemocap.vids[split_type]]
 
@@ -163,7 +164,7 @@ if __name__ == '__main__':
         to_pickle(sentences, split_data_dir.joinpath('sentences.pkl'))
         to_pickle(conv_labels, split_data_dir.joinpath('labels.pkl'))
 
-        #直前の感情系列を収録したファイルの作成
+        #感情系列を収録したファイルの作成
         to_pickle(conv_before_labels, split_data_dir.joinpath('before_labels.pkl'))
         
         #話者情報を収録したファイルの作成

@@ -31,7 +31,7 @@ if __name__ == '__main__':
         train_data_loader = get_loader(
             sentences=load_pickle(config.sentences_path)[:training_data_len],
             labels=load_pickle(config.label_path)[:training_data_len],
-            #直前の感情系列を追加
+            #感情系列を追加
             before_labels=load_pickle(config.before_label_path)[:training_data_len],
             #話者情報を追加
             speakers=load_pickle(config.speaker_path)[:training_data_len],
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         eval_data_loader = get_loader(
             sentences=load_pickle(val_config.sentences_path),
             labels=load_pickle(val_config.label_path),
-            #直前の感情系列を追加
+            #感情系列を追加
             before_labels=load_pickle(val_config.before_label_path),
             #話者情報を追加
             speakers=load_pickle(val_config.speaker_path),
@@ -54,7 +54,7 @@ if __name__ == '__main__':
         test_data_loader = get_loader(
             sentences=load_pickle(test_config.sentences_path),
             labels=load_pickle(test_config.label_path),
-            #直前の感情系列を追加
+            #感情系列を追加
             before_labels=load_pickle(test_config.before_label_path),
             #話者情報を追加
             speakers=load_pickle(test_config.speaker_path),

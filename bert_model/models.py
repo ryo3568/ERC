@@ -26,9 +26,16 @@ class bc_RNN(nn.Module):
                                                  config.rnn,
                                                  config.num_layers,
                                                  config.dropout)
+        #感情Encoderの追加
+        emotion_input_size = 6
+        self.emotion_encoder = layer.EmotionRNN(emotion_input_size,
+                                                config.emotion_size,
+                                                config.rnn,
+                                                config.num_layers,
+                                                config.dropout)                                         
         #話者情報を追加
-        #直前の感情系列を追加
-        self.context2decoder = layer.FeedForward(config.context_size+1+6,
+        #感情系列を追加
+        self.context2decoder = layer.FeedForward(config.context_size+config.emotion_size+1,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -96,15 +103,29 @@ class bc_RNN(nn.Module):
 
         context_outputs = self.dropoutLayer(context_outputs)
 
-        #直前の感情系列の次元数を調整
+        #感情系列の次元数を調整
         input_before_labels = input_before_labels.view(-1,6)
+
+        # encoder_hidden: [batch_size, max_len, num_layers * direction * hidden_size]
+        #感情系列の次元数を調整
+        emotion_input = torch.stack([pad(input_before_labels.narrow(0, s, l), max_len)
+                                      for s, l in zip(start.data.tolist(),
+                                                      input_conversation_length.data.tolist())], 0)                         
+        #感情Encoderの計算
+        emotion_outputs, emotion_last_hidden = self.emotion_encoder(emotion_input,
+                                                                    input_conversation_length)                                                          
+
+        #感情の次元数を調整                                                            
+        emotion_outputs = torch.cat([emotion_outputs[i, :l, :]
+                                     for i, l in enumerate(input_conversation_length.data)])
+
 
         #話者情報の次元数を調整
         input_speakers = input_speakers.view(-1,1)
         #話者情報を追加
-        #直前の感情系列を追加
+        #感情系列を追加
         #1次元目で結合
-        context_outputs = torch.cat([context_outputs, input_before_labels, input_speakers], 1)
+        context_outputs = torch.cat([context_outputs, emotion_outputs, input_speakers], 1)
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 
