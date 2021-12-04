@@ -25,10 +25,15 @@ class bc_RNN(nn.Module):
                                                  config.context_size,
                                                  config.rnn,
                                                  config.num_layers,
-                                                 config.dropout)
+                                                 config.dropout)                          
         #感情Encoderの追加
-        emotion_input_size = 6
-        self.emotion_encoder = layer.EmotionRNN(emotion_input_size,
+        self.emotion_embedding = layer.FeedForward(config.num_classes,
+                                                  config.emotion_embedding,
+                                                  num_layers=1,
+                                                  activation=config.activation,
+                                                  isActivation=True)   
+
+        self.emotion_encoder = layer.EmotionRNN(config.emotion_embedding,
                                                 config.emotion_size,
                                                 config.rnn,
                                                 config.num_layers,
@@ -106,9 +111,12 @@ class bc_RNN(nn.Module):
         #感情系列の次元数を調整
         input_before_labels = input_before_labels.view(-1,6)
 
+        #
+        emotion_embedding = self.emotion_embedding(input_before_labels)
+
         # encoder_hidden: [batch_size, max_len, num_layers * direction * hidden_size]
         #感情系列の次元数を調整
-        emotion_input = torch.stack([pad(input_before_labels.narrow(0, s, l), max_len)
+        emotion_input = torch.stack([pad(emotion_embedding.narrow(0, s, l), max_len)
                                       for s, l in zip(start.data.tolist(),
                                                       input_conversation_length.data.tolist())], 0)                         
         #感情Encoderの計算

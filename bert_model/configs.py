@@ -111,6 +111,7 @@ def get_config(parse=True, **optional_kwargs):
     parser.add_argument('--activation', type=str, default='Tanh')
 
     #感情Encoder
+    parser.add_argument('--emotion_embedding', type=int, default=256)
     parser.add_argument('--emotion_size', type=int, default=256)
 
     # Model
