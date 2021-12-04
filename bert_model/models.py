@@ -26,9 +26,16 @@ class bc_RNN(nn.Module):
                                                  config.rnn,
                                                  config.num_layers,
                                                  config.dropout)
-        #話者情報を追加
-        #直前の感情系列を追加
-        self.context2decoder = layer.FeedForward(config.context_size+1+6,
+        
+        #感情系列を追加
+        self.emotion_embedding = layer.FeedForward(config.num_classes,
+                                                  config.emotion_embedding,
+                                                  num_layers=1,
+                                                  activation=config.activation,
+                                                  isActivation=True)
+
+
+        self.context2decoder = layer.FeedForward(config.context_size+config.emotion_embedding+1,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -99,12 +106,15 @@ class bc_RNN(nn.Module):
         #直前の感情系列の次元数を調整
         input_before_labels = input_before_labels.view(-1,6)
 
+        #感情Embedding
+        emotion_embedding = self.emotion_embedding(input_before_labels)
+
         #話者情報の次元数を調整
         input_speakers = input_speakers.view(-1,1)
         #話者情報を追加
         #直前の感情系列を追加
         #1次元目で結合
-        context_outputs = torch.cat([context_outputs, input_before_labels, input_speakers], 1)
+        context_outputs = torch.cat([context_outputs, emotion_embedding, input_speakers], 1)
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 

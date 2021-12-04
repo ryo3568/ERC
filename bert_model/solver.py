@@ -140,7 +140,7 @@ class Solver(object):
                 input_labels = to_var(torch.LongTensor(input_labels))
 
                 #直前の感情系列を追加
-                input_before_labels = to_var(torch.LongTensor(input_before_labels))
+                input_before_labels = to_var(torch.FloatTensor(input_before_labels))
                 #話者情報を追加
                 input_speakers = to_var(torch.LongTensor(input_speakers))
                 input_sentence_length = to_var(torch.LongTensor(input_sentence_length))
@@ -255,7 +255,7 @@ class Solver(object):
                 input_sentences = to_var(torch.LongTensor(input_sentences))
                 input_labels = to_var(torch.LongTensor(input_labels))
                 #直前の感情系列を追加
-                input_before_labels = to_var(torch.LongTensor(input_before_labels))
+                input_before_labels = to_var(torch.FloatTensor(input_before_labels))
                 #話者情報を追加
                 input_speakers = to_var(torch.LongTensor(input_speakers))
                 input_sentence_length = to_var(torch.LongTensor(input_sentence_length))

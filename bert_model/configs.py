@@ -110,6 +110,9 @@ def get_config(parse=True, **optional_kwargs):
     parser.add_argument('--feedforward', type=str, default='FeedForward')
     parser.add_argument('--activation', type=str, default='Tanh')
 
+    #感情Encoder
+    parser.add_argument('--emotion_embedding', type=int, default=256)
+
     # Model
     parser.add_argument('--model', type=str, default='bc_RNN')
 
