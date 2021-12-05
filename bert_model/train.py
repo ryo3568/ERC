@@ -51,7 +51,7 @@ if __name__ == '__main__':
             sentences=load_pickle(test_config.sentences_path),
             labels=load_pickle(test_config.label_path),
             #話者情報を追加
-            speakers=load_pickle(test_config.speakers_path),
+            speakers=load_pickle(test_config.speaker_path),
             conversation_length=load_pickle(test_config.conversation_length_path),
             sentence_length=load_pickle(test_config.sentence_length_path),
             batch_size=test_config.eval_batch_size,
@@ -94,6 +94,9 @@ if __name__ == '__main__':
     print(np.mean(np.array(_best_test_loss), axis=0))
 
     print("Overall test f1 weighted")
+    #結果出力の修正
+    _best_text_f1_w = np.array(_best_test_f1_w) * 100
+    _best_test_f1_w = np.round(_best_text_f1_w, decimals=1)
     print(np.array(_best_test_f1_w))
     
     print("Best test f1 weighted")
