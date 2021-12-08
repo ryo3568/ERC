@@ -96,8 +96,10 @@ if __name__ == '__main__':
     print("Overall test f1 weighted")
     #結果出力の修正
     _best_text_f1_w = np.array(_best_test_f1_w) * 100
-    _best_test_f1_w = np.round(_best_text_f1_w, decimals=1)
+    _best_test_f1_w = np.round(_best_text_f1_w, decimals=2)
     print(np.array(_best_test_f1_w))
     
     print("Best test f1 weighted")
-    print(np.mean(np.array(_best_test_f1_w), axis=0))
+    _best_test_f1_w_mean = np.mean(np.array(_best_test_f1_w), axis=0)
+    _best_test_f1_w_mean = round(_best_test_f1_w_mean, 2)
+    print(_best_test_f1_w_mean)
