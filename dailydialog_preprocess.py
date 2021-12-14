@@ -39,17 +39,25 @@ def read_and_tokenize(dialog_path):
     
     all_dialogs = []
     all_emotion_classes = []
+    #話者タグの追加
+    all_speakers = []
     with open(dialog_path, 'r') as f:
         
         for line in tqdm(f):
             dialog = []
             emotions = []
+            #話者タグの追加
+            speakers = []
             
             s = eval(line)
             for item in s['dialogue']:
                 # print (item['text'])
                 dialog.append(item['text'])
                 emotions.append(emo_classes[item['emotion']])
+
+            #話者タグの追加
+            for i, _ in enumerate(emotions):
+              speakers.append(i%2)
                 
             # print ('-'*30)
             dialog = [tokenizer(sentence) for sentence in dialog]
@@ -57,8 +65,10 @@ def read_and_tokenize(dialog_path):
             #for k in range(1, len(dialog)):
             all_dialogs.append(dialog)
             all_emotion_classes.append(emotions)
-
-    return all_dialogs, all_emotion_classes #, users
+            #話者タグの追加
+            all_speakers.append(speakers)
+    #話者タグの追加
+    return all_dialogs, all_emotion_classes, all_speakers
 
 
 def pad_sentences(conversations, max_sentence_length=30, max_conversation_length=10):
@@ -155,7 +165,8 @@ if __name__ == '__main__':
         
         dialog_path = 'datasets/dailydialog/' + split_type + '.json'
         
-        conversations, emotions = read_and_tokenize(dialog_path)
+        #話者タグの追加
+        conversations, emotions, speakers = read_and_tokenize(dialog_path)
         
         shuffled_indices = np.arange(len(conversations))
         
@@ -164,7 +175,8 @@ if __name__ == '__main__':
             
         conversations = list(np.array(conversations)[shuffled_indices])
         emotions = list(np.array(emotions)[shuffled_indices])
-
+        #話者タグの追加
+        speakers = list(np.array(speakers)[shuffled_indices])
 
 
         print ('Number of instances in {a} data: {b}.'.format(a=split_type, b=len(conversations)))
@@ -183,6 +195,8 @@ if __name__ == '__main__':
         to_pickle(sentences, split_data_dir.joinpath('sentences.pkl'))
         to_pickle(sentence_length, split_data_dir.joinpath('sentence_length.pkl'))
         to_pickle(emotions, split_data_dir.joinpath('labels.pkl'))
+        #話者タグの追加
+        to_pickle(speakers, split_data_dir.joinpath('speakers.pkl'))
 
         if split_type == 'train':
 
