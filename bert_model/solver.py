@@ -181,8 +181,8 @@ class Solver(object):
             epoch_loss = np.mean(batch_loss_history)
             self.epoch_loss = epoch_loss
 
-            print_str = f'Epoch {epoch_i+1} loss average: {epoch_loss:.3f}'
-            print(print_str)
+            #print_str = f'Epoch {epoch_i+1} loss average: {epoch_loss:.3f}'
+            #print(print_str)
             
             self.w_train_f1 = self.print_metric(ground_truth, predictions, "train")
 
