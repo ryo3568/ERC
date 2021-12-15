@@ -303,7 +303,8 @@ class Solver(object):
         
 
         if (self.config.data == "dailydialog"):
-            weighted_fscore = classification_report(y_true, y_pred, labels=[1,2,3,4,5,6], output_dict=True, digits=4)["weighted avg"]["f1-score"]
+            #出力を変更
+            weighted_fscore = classification_report(y_true, y_pred, labels=[1,2,3,4,5,6], output_dict=True, digits=4)["micro avg"]["f1-score"]
         else:
             weighted_fscore = classification_report(y_true, y_pred, output_dict=True, digits=4)["weighted avg"]["f1-score"]
 
