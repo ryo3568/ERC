@@ -26,15 +26,6 @@ tokenizer = Tokenizer('spacy')
 emo_classes = {'no_emotion': 0, 'happiness': 1, 'sadness': 2, 'surprise': 3, 
                 'anger': 4, 'fear': 5, 'disgust':6}
 
-def create_before_labels(seq):
-    res = [2]
-    for v in range(len(seq)-1):
-        res.append(seq[v])
-    #one-hot 表現に変換
-    #listに戻す
-    res = np.eye(6)[res].tolist()
-    return res
-
 
 def read_and_tokenize(dialog_path):
     """
@@ -60,7 +51,7 @@ def read_and_tokenize(dialog_path):
             #話者タグの追加
             speakers = []
             #直前の感情系列を追加
-            before_emotions = [2]
+            before_emotions = [0]
             
             s = eval(line)
             for item in s['dialogue']:
