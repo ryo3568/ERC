@@ -104,7 +104,7 @@ class bc_RNN(nn.Module):
         context_outputs = self.dropoutLayer(context_outputs)
 
         #直前の感情系列の次元数を調整
-        input_before_labels = input_before_labels.view(-1,6)
+        input_before_labels = input_before_labels.view(-1,self.config.num_classes)
 
         #感情Embedding
         emotion_embedding = self.emotion_embedding(input_before_labels)
