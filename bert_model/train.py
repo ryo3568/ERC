@@ -74,7 +74,11 @@ if __name__ == '__main__':
 
         print("\n\nBest test loss")
         print(best_test_loss)
-        print("Best test f1 weighted")
+        #出力を変更
+        if (self.config.data == "dailydialog"):
+            print("Best test micro f1")
+        else:
+            print("Best test f1 weighted")
         print(best_test_f1_w)
         print("Best epoch")
         print(best_epoch)
@@ -99,7 +103,11 @@ if __name__ == '__main__':
     _best_test_f1_w = np.round(_best_test_f1_w, decimals=2)
     print(np.array(_best_test_f1_w))
     
-    print("Best test f1 weighted")
+    #出力を変更
+    if (self.config.data == "dailydialog"):
+        print("Best test micro f1")
+    else:
+        print("Best test f1 weighted")
     _best_test_f1_w_mean = np.mean(np.array(_best_test_f1_w), axis=0)
     _best_test_f1_w_mean = round(_best_test_f1_w_mean, 2)
     print(_best_test_f1_w_mean)
