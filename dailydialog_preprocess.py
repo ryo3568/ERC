@@ -26,6 +26,15 @@ tokenizer = Tokenizer('spacy')
 emo_classes = {'no_emotion': 0, 'happiness': 1, 'sadness': 2, 'surprise': 3, 
                 'anger': 4, 'fear': 5, 'disgust':6}
 
+def create_before_labels(seq):
+    res = [2]
+    for v in range(len(seq)-1):
+        res.append(seq[v])
+    #one-hot 表現に変換
+    #listに戻す
+    res = np.eye(6)[res].tolist()
+    return res
+
 
 def read_and_tokenize(dialog_path):
     """
@@ -41,6 +50,8 @@ def read_and_tokenize(dialog_path):
     all_emotion_classes = []
     #話者タグの追加
     all_speakers = []
+    #直前の感情系列を追加
+    all_before_emotions = []
     with open(dialog_path, 'r') as f:
         
         for line in tqdm(f):
@@ -48,6 +59,8 @@ def read_and_tokenize(dialog_path):
             emotions = []
             #話者タグの追加
             speakers = []
+            #直前の感情系列を追加
+            before_emotions = [2]
             
             s = eval(line)
             for item in s['dialogue']:
@@ -58,6 +71,13 @@ def read_and_tokenize(dialog_path):
             #話者タグの追加
             for i, _ in enumerate(emotions):
               speakers.append(i%2)
+
+            #直前の感情系列を追加
+            for v in range(len(emotions)-1):
+                before_emotions.append(emotions[v])
+            #one-hot 表現に変換
+            #listに戻す
+            before_emotions = np.eye(7)[before_emotions].tolist()
                 
             # print ('-'*30)
             dialog = [tokenizer(sentence) for sentence in dialog]
@@ -67,8 +87,11 @@ def read_and_tokenize(dialog_path):
             all_emotion_classes.append(emotions)
             #話者タグの追加
             all_speakers.append(speakers)
+            #直前の感情系列を追加
+            all_before_emotions.append(before_emotions)
     #話者タグの追加
-    return all_dialogs, all_emotion_classes, all_speakers
+    #直前の感情系列を追加
+    return all_dialogs, all_emotion_classes, all_speakers, all_before_emotions
 
 
 def pad_sentences(conversations, max_sentence_length=30, max_conversation_length=10):
@@ -166,7 +189,8 @@ if __name__ == '__main__':
         dialog_path = 'datasets/dailydialog/' + split_type + '.json'
         
         #話者タグの追加
-        conversations, emotions, speakers = read_and_tokenize(dialog_path)
+        #直前の感情系列を追加
+        conversations, emotions, speakers, before_emotions = read_and_tokenize(dialog_path)
         
         shuffled_indices = np.arange(len(conversations))
         
@@ -177,6 +201,8 @@ if __name__ == '__main__':
         emotions = list(np.array(emotions)[shuffled_indices])
         #話者タグの追加
         speakers = list(np.array(speakers)[shuffled_indices])
+        #直前の感情系列を追加
+        before_emotions = list(np.array(before_emotions)[shuffled_indices])
 
 
 
@@ -198,6 +224,8 @@ if __name__ == '__main__':
         to_pickle(emotions, split_data_dir.joinpath('labels.pkl'))
         #話者タグの追加
         to_pickle(speakers, split_data_dir.joinpath('speakers.pkl'))
+        #直前の感情系列を追加
+        to_pickle(before_emotions, split_data_dir.joinpath('before_labels.pkl'))
 
         if split_type == 'train':
 
