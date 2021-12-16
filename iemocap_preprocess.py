@@ -103,7 +103,7 @@ if __name__ == '__main__':
             res.append(seq[v])
         #one-hot 表現に変換
         #listに戻す
-        res = np.eye(6)[res].tolist()
+        res = np.eye(6,dtype=np.int8)[res].tolist()
         return res
 
     def to_pickle(obj, path):

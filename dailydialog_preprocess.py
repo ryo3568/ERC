@@ -68,7 +68,7 @@ def read_and_tokenize(dialog_path):
                 before_emotions.append(emotions[v])
             #one-hot 表現に変換
             #listに戻す
-            before_emotions = np.eye(7)[before_emotions].tolist()
+            before_emotions = np.eye(7,dtype=np.int8)[before_emotions].tolist()
                 
             # print ('-'*30)
             dialog = [tokenizer(sentence) for sentence in dialog]
