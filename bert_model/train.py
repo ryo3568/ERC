@@ -75,7 +75,7 @@ if __name__ == '__main__':
         print("\n\nBest test loss")
         print(best_test_loss)
         #出力を変更
-        if (self.config.data == "dailydialog"):
+        if (config.data == "dailydialog"):
             print("Best test micro f1")
         else:
             print("Best test f1 weighted")
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     print(np.array(_best_test_f1_w))
     
     #出力を変更
-    if (self.config.data == "dailydialog"):
+    if (config.data == "dailydialog"):
         print("Best test micro f1")
     else:
         print("Best test f1 weighted")
