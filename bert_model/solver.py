@@ -212,7 +212,7 @@ class Solver(object):
             self.validation_loss, self.w_valid_f1, valid_predictions = self.evaluate(self.valid_data_loader, mode="valid")
             self.test_loss, self.w_test_f1, test_predictions = self.evaluate(self.test_data_loader, mode="test")
 
-            print(self.epoch_loss, self.w_train_f1, self.w_valid_f1, self.w_test_f1)
+            #print(self.epoch_loss, self.w_train_f1, self.w_valid_f1, self.w_test_f1)
 
             IMPROVED = False
             if self.validation_loss < min_val_loss:
