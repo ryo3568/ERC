@@ -106,6 +106,11 @@ class Solver(object):
             #result
             self.count = np.zeros((6,6)).astype(np.int16)
             self.count_ans = np.zeros((6,6)).astype(np.int16)
+            #result2
+            self.emo_shift = 0
+            self.emo_con = 0
+            self.emo_shift_sum = 0
+            self.emo_con_sum = 0
 
             batch_loss_history = []
             predictions, ground_truth = [], []
@@ -182,12 +187,33 @@ class Solver(object):
                     continue;
                   self.count[batch1[i-1]][batch1[i]] += 1
                   self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+
+                  #result2
+                  if batch1_ans[i] == batch1_ans[i-1]:
+                    self.emo_con_sum += 1
+                    if batch1[i] == batch1_ans[i]:
+                      self.emo_con += 1
+                  else:
+                    self.emo_shift_sum += 1
+                    if batch1[i] == batch1_ans[i]:
+                      self.emo_shift += 1
+
                 
                 for i in range(len(batch2)):
                   if i == 0:
                     continue;
                   self.count[batch2[i-1]][batch2[i]] += 1
                   self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
+
+                  #result2
+                  if batch2_ans[i] == batch2_ans[i-1]:
+                    self.emo_con_sum += 1
+                    if batch2[i] == batch2_ans[i]:
+                      self.emo_con += 1
+                  else:
+                    self.emo_shift_sum += 1
+                    if batch2[i] == batch2_ans[i]:
+                      self.emo_shift += 1
 
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
@@ -251,7 +277,10 @@ class Solver(object):
       print(np.round(self.count / self.count.sum(axis=1).reshape(-1,1), decimals=3)*100)
       print("ground_truth:")
       print(self.count_ans) 
-      print(np.round(self.count_ans / self.count_ans.sum(axis=1).reshape(-1,1), decimals=3)*100)        
+      print(np.round(self.count_ans / self.count_ans.sum(axis=1).reshape(-1,1), decimals=3)*100)  
+      print("emotion shift:       ", self.emo_shift / self.emo_shift_sum)
+      print("emotion consistency: ", self.emo_con/ self.emo_con_sum)
+         
 
     def evaluate(self, data_loader, mode=None):
         assert(mode is not None)
@@ -323,12 +352,32 @@ class Solver(object):
                 continue;
               self.count[batch1[i-1]][batch1[i]] += 1
               self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+
+              #result2
+              if batch1_ans[i] == batch1_ans[i-1]:
+                self.emo_con_sum += 1
+                if batch1[i] == batch1_ans[i]:
+                  self.emo_con += 1
+              else:
+                self.emo_shift_sum += 1
+                if batch1[i] == batch1_ans[i]:
+                  self.emo_shift += 1
                 
             for i in range(len(batch2)):
               if i == 0:
                 continue;
               self.count[batch2[i-1]][batch2[i]] += 1
               self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
+
+              #result2
+              if batch2_ans[i] == batch2_ans[i-1]:
+                self.emo_con_sum += 1
+                if batch2[i] == batch2_ans[i]:
+                  self.emo_con += 1
+              else:
+                self.emo_shift_sum += 1
+                if batch2[i] == batch2_ans[i]:
+                  self.emo_shift += 1
 
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())
