@@ -114,6 +114,9 @@ def get_config(parse=True, **optional_kwargs):
     parser.add_argument('--emotion_embedding', type=int, default=256)
     parser.add_argument('--emotion_size', type=int, default=256)
 
+    #result
+    parser.add_argument('--result', type=bool, default=False)
+
     # Model
     parser.add_argument('--model', type=str, default='bc_RNN')
 

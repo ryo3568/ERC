@@ -103,6 +103,9 @@ class Solver(object):
         
         for epoch_i in range(self.epoch_i, self.config.n_epoch):
             self.epoch_i = epoch_i
+            #result
+            self.count = np.zeros((6,6)).astype(np.int16)
+            self.count_ans = np.zeros((6,6)).astype(np.int16)
 
             batch_loss_history = []
             predictions, ground_truth = [], []
@@ -168,6 +171,24 @@ class Solver(object):
                 predictions += present_predictions
                 ground_truth += orig_input_labels
 
+                #result
+                batch1 = present_predictions[:conversation_length[0]]
+                batch1_ans = orig_input_labels[:conversation_length[0]]
+                batch2 = present_predictions[conversation_length[0]:]
+                batch2_ans = orig_input_labels[conversation_length[0]:]
+
+                for i in range(len(batch1)):
+                  if i == 0:
+                    continue;
+                  self.count[batch1[i-1]][batch1[i]] += 1
+                  self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+                
+                for i in range(len(batch2)):
+                  if i == 0:
+                    continue;
+                  self.count[batch2[i-1]][batch2[i]] += 1
+                  self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
+
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
 
@@ -207,6 +228,9 @@ class Solver(object):
                 best_test_loss = self.test_loss
                 best_test_f1_w = self.w_test_f1
                 best_epoch = (self.epoch_i+1)
+                #result
+                if self.config.result:
+                  self.output_result()
 
             if (not IMPROVED):
                 patience_counter+=1
@@ -220,6 +244,14 @@ class Solver(object):
         return best_test_loss, best_test_f1_w, best_epoch
 
 
+    #result
+    def output_result(self):
+      print("prediction:")
+      print(self.count)
+      print(np.round(self.count / self.count.sum(axis=1).reshape(-1,1), decimals=3)*100)
+      print("ground_truth:")
+      print(self.count_ans) 
+      print(np.round(self.count_ans / self.count_ans.sum(axis=1).reshape(-1,1), decimals=3)*100)        
 
     def evaluate(self, data_loader, mode=None):
         assert(mode is not None)
@@ -279,6 +311,24 @@ class Solver(object):
 
             predictions += present_predictions
             ground_truth += orig_input_labels
+
+            #result
+            batch1 = present_predictions[:conversation_length[0]]
+            batch1_ans = orig_input_labels[:conversation_length[0]]
+            batch2 = present_predictions[conversation_length[0]:]
+            batch2_ans = orig_input_labels[conversation_length[0]:]
+
+            for i in range(len(batch1)):
+              if i == 0:
+                continue;
+              self.count[batch1[i-1]][batch1[i]] += 1
+              self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+                
+            for i in range(len(batch2)):
+              if i == 0:
+                continue;
+              self.count[batch2[i-1]][batch2[i]] += 1
+              self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
 
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())
