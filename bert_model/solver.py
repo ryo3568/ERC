@@ -25,6 +25,7 @@ class Solver(object):
         self.test_data_loader = test_data_loader
         self.is_train = is_train
         self.model = model
+        
 
     @time_desc_decorator('Build Graph')
     def build(self, cuda=True):
@@ -101,8 +102,12 @@ class Solver(object):
         patience_counter=0
         best_epoch = -1
         
+
         for epoch_i in range(self.epoch_i, self.config.n_epoch):
             self.epoch_i = epoch_i
+            #result
+            self.count = np.zeros((6,6)).astype(np.int16)
+            self.count_ans = np.zeros((6,6)).astype(np.int16)
 
             batch_loss_history = []
             predictions, ground_truth = [], []
@@ -161,12 +166,31 @@ class Solver(object):
                     input_masks)
 
                 present_predictions = list(np.argmax(sentence_logits.detach().cpu().numpy(), axis=1))
+                
 
                 loss_function = nn.CrossEntropyLoss()
                 batch_loss = loss_function(sentence_logits, input_labels)
 
                 predictions += present_predictions
                 ground_truth += orig_input_labels
+
+                #result
+                batch1 = present_predictions[:conversation_length[0]]
+                batch1_ans = orig_input_labels[:conversation_length[0]]
+                batch2 = present_predictions[conversation_length[0]:]
+                batch2_ans = orig_input_labels[conversation_length[0]:]
+
+                for i in range(len(batch1)):
+                  if i == 0:
+                    continue;
+                  self.count[batch1[i-1]][batch1[i]] += 1
+                  self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+                
+                for i in range(len(batch2)):
+                  if i == 0:
+                    continue;
+                  self.count[batch2[i-1]][batch2[i]] += 1
+                  self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
 
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
@@ -198,15 +222,19 @@ class Solver(object):
             self.validation_loss, self.w_valid_f1, valid_predictions = self.evaluate(self.valid_data_loader, mode="valid")
             self.test_loss, self.w_test_f1, test_predictions = self.evaluate(self.test_data_loader, mode="test")
 
-            print(self.epoch_loss, self.w_train_f1, self.w_valid_f1, self.w_test_f1)
+            #print(self.epoch_loss, self.w_train_f1, self.w_valid_f1, self.w_test_f1)
 
             IMPROVED = False
+            
             if self.validation_loss < min_val_loss:
                 IMPROVED = True
                 min_val_loss = self.validation_loss
                 best_test_loss = self.test_loss
                 best_test_f1_w = self.w_test_f1
                 best_epoch = (self.epoch_i+1)
+                #result
+                if self.config.result:
+                  self.output_result()
 
             if (not IMPROVED):
                 patience_counter+=1
@@ -219,7 +247,14 @@ class Solver(object):
 
         return best_test_loss, best_test_f1_w, best_epoch
 
-
+    #result
+    def output_result(self):
+      print("prediction:")
+      print(self.count)
+      print(np.round(self.count / self.count.sum(axis=1).reshape(-1,1), decimals=3)*100)
+      print("ground_truth:")
+      print(self.count_ans) 
+      print(np.round(self.count_ans / self.count_ans.sum(axis=1).reshape(-1,1), decimals=3)*100)  
 
     def evaluate(self, data_loader, mode=None):
         assert(mode is not None)
@@ -279,6 +314,24 @@ class Solver(object):
 
             predictions += present_predictions
             ground_truth += orig_input_labels
+
+            #result
+            batch1 = present_predictions[:conversation_length[0]]
+            batch1_ans = orig_input_labels[:conversation_length[0]]
+            batch2 = present_predictions[conversation_length[0]:]
+            batch2_ans = orig_input_labels[conversation_length[0]:]
+
+            for i in range(len(batch1)):
+              if i == 0:
+                continue;
+              self.count[batch1[i-1]][batch1[i]] += 1
+              self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+                
+            for i in range(len(batch2)):
+              if i == 0:
+                continue;
+              self.count[batch2[i-1]][batch2[i]] += 1
+              self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
 
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())

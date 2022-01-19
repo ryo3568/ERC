@@ -113,6 +113,9 @@ def get_config(parse=True, **optional_kwargs):
     #感情Encoder
     parser.add_argument('--emotion_embedding', type=int, default=256)
 
+    #result
+    parser.add_argument('--result', type=bool, default=False)
+
     # Model
     parser.add_argument('--model', type=str, default='bc_RNN')
 
