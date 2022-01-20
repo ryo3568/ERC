@@ -171,8 +171,8 @@ class Solver(object):
                 ground_truth += orig_input_labels
 
                 #result
-                #self.result(present_predictions, orig_input_labels, conversation_length, speakers)
-                self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
+                self.result2(present_predictions, orig_input_labels, conversation_length, speakers)
+                #self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
             
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
@@ -229,7 +229,7 @@ class Solver(object):
         return best_test_loss, best_test_f1_w, best_epoch
 
     #result 修正版
-    def result(self, present_predictions, orig_input_labels, conversation_length, speakers):
+    def result2(self, present_predictions, orig_input_labels, conversation_length, speakers):
       batch1 = present_predictions[:conversation_length[0]]
       batch1_ans = orig_input_labels[:conversation_length[0]]
       batch2 = present_predictions[conversation_length[0]:]
@@ -384,7 +384,6 @@ class Solver(object):
     def output_result(self):
       print("prediction:")
       print(self.count)
-      print(self.count.sum())
       print(np.round(self.count / self.count.sum(axis=1).reshape(-1,1), decimals=3)*100)
       print("ground_truth:")
       print(self.count_ans) 
@@ -445,8 +444,8 @@ class Solver(object):
             ground_truth += orig_input_labels
 
             #result
-            #self.result(present_predictions, orig_input_labels, conversation_length, speakers)
-            self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
+            self.result2(present_predictions, orig_input_labels, conversation_length, speakers)
+            #self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
 
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())
