@@ -106,8 +106,8 @@ class Solver(object):
         for epoch_i in range(self.epoch_i, self.config.n_epoch):
             self.epoch_i = epoch_i
             #result
-            self.count = np.zeros((6,6)).astype(np.int16)
-            self.count_ans = np.zeros((6,6)).astype(np.int16)
+            self.count = np.zeros((self.config.num_classes,self.config.num_classes)).astype(np.int16)
+            self.count_ans = np.zeros((self.config.num_classes,self.config.num_classes)).astype(np.int16)
             #result2
             self.emo_shift = 0
             self.emo_con = 0
@@ -180,42 +180,8 @@ class Solver(object):
                 ground_truth += orig_input_labels
 
                 #result
-                batch1 = present_predictions[:conversation_length[0]]
-                batch1_ans = orig_input_labels[:conversation_length[0]]
-                batch2 = present_predictions[conversation_length[0]:]
-                batch2_ans = orig_input_labels[conversation_length[0]:]
-
-                for i in range(len(batch1)):
-                  if i == 0:
-                    continue;
-                  self.count[batch1[i-1]][batch1[i]] += 1
-                  self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
-
-                  #result2
-                  if batch1_ans[i] == batch1_ans[i-1]:
-                    self.emo_con_sum += 1
-                    if batch1[i] == batch1_ans[i]:
-                      self.emo_con += 1
-                  else:
-                    self.emo_shift_sum += 1
-                    if batch1[i] == batch1_ans[i]:
-                      self.emo_shift += 1
-                
-                for i in range(len(batch2)):
-                  if i == 0:
-                    continue;
-                  self.count[batch2[i-1]][batch2[i]] += 1
-                  self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
-
-                  #result2
-                  if batch2_ans[i] == batch2_ans[i-1]:
-                    self.emo_con_sum += 1
-                    if batch2[i] == batch2_ans[i]:
-                      self.emo_con += 1
-                  else:
-                    self.emo_shift_sum += 1
-                    if batch2[i] == batch2_ans[i]:
-                      self.emo_shift += 1
+                #self.result(present_predictions, orig_input_labels, conversation_length, speakers)
+                self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
 
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
@@ -272,7 +238,158 @@ class Solver(object):
 
         return best_test_loss, best_test_f1_w, best_epoch
 
+    #result 修正版
+    def result(self, present_predictions, orig_input_labels, conversation_length, speakers):
+      batch1 = present_predictions[:conversation_length[0]]
+      batch1_ans = orig_input_labels[:conversation_length[0]]
+      batch2 = present_predictions[conversation_length[0]:]
+      batch2_ans = orig_input_labels[conversation_length[0]:]
+
+      #batch1
+      batch1a = []
+      batch1b = []
+                
+      for i, v in enumerate(batch1):
+        if speakers[0][i] == 0:
+          batch1a.append(v)
+        else:
+          batch1b.append(v)
+
+      batch1a_ans = []
+      batch1b_ans = []
+
+      for i, v in enumerate(batch1_ans):
+        if speakers[0][i] == 0:
+          batch1a_ans.append(v)
+        else:
+          batch1b_ans.append(v)
+
+
+      for i in range(len(batch1a)):
+        if i == 0:
+          continue;
+        self.count[batch1a[i-1]][batch1a[i]] += 1
+        self.count_ans[batch1a_ans[i-1]][batch1a_ans[i]] += 1
+
+        if batch1a_ans[i] == batch1a_ans[i-1]:
+          self.emo_con_sum += 1
+          if batch1a[i] == batch1a_ans[i]:
+            self.emo_con += 1
+        else:
+          self.emo_shift_sum += 1
+          if batch1a[i] == batch1a_ans[i]:
+            self.emo_shift += 1
+
+      for i in range(len(batch1b)):
+        if i == 0:
+          continue;
+        self.count[batch1b[i-1]][batch1b[i]] += 1
+        self.count_ans[batch1b_ans[i-1]][batch1b_ans[i]] += 1
+
+
+        #result2
+        if batch1b_ans[i] == batch1b_ans[i-1]:
+          self.emo_con_sum += 1
+          if batch1b[i] == batch1b_ans[i]:
+            self.emo_con += 1
+        else:
+          self.emo_shift_sum += 1
+          if batch1b[i] == batch1b_ans[i]:
+            self.emo_shift += 1
+              
+      #batch2
+      batch2a = []
+      batch2b = []
+                
+      for i, v in enumerate(batch2):
+        if speakers[1][i] == 0:
+          batch2a.append(v)
+        else:
+          batch2b.append(v)
+
+      batch2a_ans = []
+      batch2b_ans = []
+
+      for i, v in enumerate(batch2_ans):
+        if speakers[1][i] == 0:
+          batch2a_ans.append(v)
+        else:
+          batch2b_ans.append(v)
+
+
+      for i in range(len(batch2a)):
+        if i == 0:
+          continue;
+        self.count[batch2a[i-1]][batch2a[i]] += 1
+        self.count_ans[batch2a_ans[i-1]][batch2a_ans[i]] += 1
+
+        if batch2a_ans[i] == batch2a_ans[i-1]:
+          self.emo_con_sum += 1
+          if batch2a[i] == batch2a_ans[i]:
+            self.emo_con += 1
+        else:
+          self.emo_shift_sum += 1
+          if batch2a[i] == batch2a_ans[i]:
+            self.emo_shift += 1
+
+      for i in range(len(batch2b)):
+        if i == 0:
+          continue;
+        self.count[batch2b[i-1]][batch2b[i]] += 1
+        self.count_ans[batch2b_ans[i-1]][batch2b_ans[i]] += 1
+
+
+        if batch2b_ans[i] == batch2b_ans[i-1]:
+          self.emo_con_sum += 1
+          if batch2b[i] == batch2b_ans[i]:
+            self.emo_con += 1
+        else:
+          self.emo_shift_sum += 1
+          if batch2b[i] == batch2b_ans[i]:
+            self.emo_shift += 1
+
     #result
+    def result1(self, present_predictions, orig_input_labels, conversation_length, speakers):
+      #result
+      batch1 = present_predictions[:conversation_length[0]]
+      batch1_ans = orig_input_labels[:conversation_length[0]]
+      batch2 = present_predictions[conversation_length[0]:]
+      batch2_ans = orig_input_labels[conversation_length[0]:]
+
+      for i in range(len(batch1)):
+        if i == 0:
+          continue;
+        self.count[batch1[i-1]][batch1[i]] += 1
+        self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
+
+        #result2
+        if batch1_ans[i] == batch1_ans[i-1]:
+          self.emo_con_sum += 1
+          if batch1[i] == batch1_ans[i]:
+            self.emo_con += 1
+        else:
+          self.emo_shift_sum += 1
+          if batch1[i] == batch1_ans[i]:
+            self.emo_shift += 1
+                
+      for i in range(len(batch2)):
+        if i == 0:
+          continue;
+        self.count[batch2[i-1]][batch2[i]] += 1
+        self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
+
+        #result2
+        if batch2_ans[i] == batch2_ans[i-1]:
+          self.emo_con_sum += 1
+          if batch2[i] == batch2_ans[i]:
+            self.emo_con += 1
+        else:
+          self.emo_shift_sum += 1
+          if batch2[i] == batch2_ans[i]:
+            self.emo_shift += 1
+
+
+    #output_result
     def output_result(self):
       print("prediction:")
       print(self.count)
@@ -343,42 +460,8 @@ class Solver(object):
             ground_truth += orig_input_labels
 
             #result
-            batch1 = present_predictions[:conversation_length[0]]
-            batch1_ans = orig_input_labels[:conversation_length[0]]
-            batch2 = present_predictions[conversation_length[0]:]
-            batch2_ans = orig_input_labels[conversation_length[0]:]
-
-            for i in range(len(batch1)):
-              if i == 0:
-                continue;
-              self.count[batch1[i-1]][batch1[i]] += 1
-              self.count_ans[batch1_ans[i-1]][batch1_ans[i]] += 1
-
-              #result2
-              if batch1_ans[i] == batch1_ans[i-1]:
-                self.emo_con_sum += 1
-                if batch1[i] == batch1_ans[i]:
-                  self.emo_con += 1
-              else:
-                self.emo_shift_sum += 1
-                if batch1[i] == batch1_ans[i]:
-                  self.emo_shift += 1
-                
-            for i in range(len(batch2)):
-              if i == 0:
-                continue;
-              self.count[batch2[i-1]][batch2[i]] += 1
-              self.count_ans[batch2_ans[i-1]][batch2_ans[i]] += 1
-
-              #result2
-              if batch2_ans[i] == batch2_ans[i-1]:
-                self.emo_con_sum += 1
-                if batch2[i] == batch2_ans[i]:
-                  self.emo_con += 1
-              else:
-                self.emo_shift_sum += 1
-                if batch2[i] == batch2_ans[i]:
-                  self.emo_shift += 1
+            #self.result(present_predictions, orig_input_labels, conversation_length, speakers)
+            self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
 
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())
