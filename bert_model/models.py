@@ -21,7 +21,7 @@ class bc_RNN(nn.Module):
                               * config.encoder_hidden_size)
 
 
-        self.context_encoder = layer.ContextRNN(context_input_size,
+        self.context_encoder = layer.ContextRNN(context_input_size+1,
                                                  config.context_size,
                                                  config.rnn,
                                                  config.num_layers,
@@ -35,7 +35,7 @@ class bc_RNN(nn.Module):
                                                   isActivation=True)
 
 
-        self.context2decoder = layer.FeedForward(config.context_size+config.emotion_embedding+1,
+        self.context2decoder = layer.FeedForward(config.context_size+config.emotion_embedding,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -59,6 +59,10 @@ class bc_RNN(nn.Module):
                 - train: [batch_size, seq_len, vocab_size]
                 - eval: [batch_size, seq_len]
         """
+
+        #話者情報の次元数を調整
+        input_speakers = input_speakers.view(-1,1)
+
         num_sentences = input_sentences.size(0)
         max_len = input_conversation_length.max().item()
 
@@ -81,6 +85,8 @@ class bc_RNN(nn.Module):
 
         # encoder_hidden: [num_sentences, num_layers * direction * hidden_size]
         encoder_hidden = bert_output
+
+        encoder_hidden = torch.cat([encoder_hidden, input_speakers], 1)
 
         # pad and pack encoder_hidden
         start = torch.cumsum(torch.cat((to_var(input_conversation_length.data.new(1).zero_()),
@@ -109,12 +115,11 @@ class bc_RNN(nn.Module):
         #感情Embedding
         emotion_embedding = self.emotion_embedding(input_before_labels)
 
-        #話者情報の次元数を調整
-        input_speakers = input_speakers.view(-1,1)
+        
         #話者情報を追加
         #直前の感情系列を追加
         #1次元目で結合
-        context_outputs = torch.cat([context_outputs, emotion_embedding, input_speakers], 1)
+        context_outputs = torch.cat([context_outputs, emotion_embedding], 1)
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 
