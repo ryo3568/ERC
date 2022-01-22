@@ -43,6 +43,7 @@ def read_and_tokenize(dialog_path):
     all_speakers = []
     #直前の感情系列を追加
     all_before_emotions = []
+    all_before_emotions_sampeperson = []
     with open(dialog_path, 'r') as f:
         
         for line in tqdm(f):
@@ -52,6 +53,7 @@ def read_and_tokenize(dialog_path):
             speakers = []
             #直前の感情系列を追加
             before_emotions = [0]
+            before_emotions_sameperson = []
             
             s = eval(line)
             for item in s['dialogue']:
@@ -68,7 +70,30 @@ def read_and_tokenize(dialog_path):
                 before_emotions.append(emotions[v])
             #one-hot 表現に変換
             #listに戻す
+
             before_emotions = np.eye(7,dtype=np.int8)[before_emotions].tolist()
+
+            before_0 = [0]
+            before_1 = [0]
+
+            for v in range(len(emotions)):
+              if speakers[v] == 0:
+                before_0.append(emotions[v])
+              else :
+                before_1.append(emotions[v])
+
+            index_0 = 0
+            index_1 = 0
+
+            for v in range(len(emotions)):
+              if speakers[v] == 0:
+                before_emotions_sameperson.append(before_0[index_0])
+                index_0 += 1
+              else:
+                before_emotions_sameperson.append(before_1[index_1])
+                index_1 += 1
+            
+            before_emotions_sameperson = np.eye(7,dtype=np.int8)[before_emotions_sameperson].tolist()
                 
             # print ('-'*30)
             dialog = [tokenizer(sentence) for sentence in dialog]
@@ -80,9 +105,10 @@ def read_and_tokenize(dialog_path):
             all_speakers.append(speakers)
             #直前の感情系列を追加
             all_before_emotions.append(before_emotions)
+            all_before_emotions_sampeperson.append(before_emotions_sameperson)
     #話者タグの追加
     #直前の感情系列を追加
-    return all_dialogs, all_emotion_classes, all_speakers, all_before_emotions
+    return all_dialogs, all_emotion_classes, all_speakers, all_before_emotions, all_before_emotions_sampeperson
 
 
 def pad_sentences(conversations, max_sentence_length=30, max_conversation_length=10):
@@ -181,7 +207,7 @@ if __name__ == '__main__':
         
         #話者タグの追加
         #直前の感情系列を追加
-        conversations, emotions, speakers, before_emotions = read_and_tokenize(dialog_path)
+        conversations, emotions, speakers, before_emotions, before_emotions_sameperson = read_and_tokenize(dialog_path)
         
         shuffled_indices = np.arange(len(conversations))
         
@@ -194,7 +220,7 @@ if __name__ == '__main__':
         speakers = list(np.array(speakers)[shuffled_indices])
         #直前の感情系列を追加
         before_emotions = list(np.array(before_emotions)[shuffled_indices])
-
+        before_emotions_sameperson = list(np.array(before_emotions_sameperson)[shuffled_indices])
 
 
         print ('Number of instances in {a} data: {b}.'.format(a=split_type, b=len(conversations)))
@@ -217,6 +243,7 @@ if __name__ == '__main__':
         to_pickle(speakers, split_data_dir.joinpath('speakers.pkl'))
         #直前の感情系列を追加
         to_pickle(before_emotions, split_data_dir.joinpath('before_labels.pkl'))
+        to_pickle(before_emotions_sameperson, split_data_dir.joinpath('before_labels_sameperson.pkl'))
 
         if split_type == 'train':
 
@@ -234,4 +261,3 @@ if __name__ == '__main__':
             
 
         print('Done!')
-
