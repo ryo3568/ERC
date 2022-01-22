@@ -180,8 +180,8 @@ class Solver(object):
                 ground_truth += orig_input_labels
 
                 #result
-                #self.result2(present_predictions, orig_input_labels, conversation_length, speakers)
-                self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
+                self.result2(present_predictions, orig_input_labels, conversation_length, speakers)
+                
 
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
@@ -460,8 +460,8 @@ class Solver(object):
             ground_truth += orig_input_labels
 
             #result
-            #self.result2(present_predictions, orig_input_labels, conversation_length, speakers)
-            self.result1(present_predictions, orig_input_labels, conversation_length, speakers)
+            self.result2(present_predictions, orig_input_labels, conversation_length, speakers)
+            
 
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())
