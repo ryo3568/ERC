@@ -21,13 +21,13 @@ class bc_RNN(nn.Module):
                               * config.encoder_hidden_size)
 
 
-        self.context_encoder = layer.ContextRNN(context_input_size,
+        self.context_encoder = layer.ContextRNN(context_input_size+1,
                                                  config.context_size,
                                                  config.rnn,
                                                  config.num_layers,
                                                  config.dropout)
         #話者情報を追加
-        self.context2decoder = layer.FeedForward(config.context_size+1,
+        self.context2decoder = layer.FeedForward(config.context_size,
                                                   config.num_layers * config.context_size,
                                                   num_layers=1,
                                                   activation=config.activation,
@@ -50,6 +50,10 @@ class bc_RNN(nn.Module):
                 - train: [batch_size, seq_len, vocab_size]
                 - eval: [batch_size, seq_len]
         """
+
+        #話者情報の次元数を調整
+        input_speakers = input_speakers.view(-1,1)
+
         num_sentences = input_sentences.size(0)
         max_len = input_conversation_length.max().item()
 
@@ -73,6 +77,8 @@ class bc_RNN(nn.Module):
         # encoder_hidden: [num_sentences, num_layers * direction * hidden_size]
         encoder_hidden = bert_output
 
+        encoder_hidden = torch.cat([encoder_hidden, input_speakers], 1)
+
         # pad and pack encoder_hidden
         start = torch.cumsum(torch.cat((to_var(input_conversation_length.data.new(1).zero_()),
                                         input_conversation_length[:-1])), 0)
@@ -94,11 +100,6 @@ class bc_RNN(nn.Module):
 
         context_outputs = self.dropoutLayer(context_outputs)
 
-        #話者情報の次元数を調整
-        input_speakers = input_speakers.view(-1,1)
-        #話者情報を追加
-        #1次元目で結合
-        context_outputs = torch.cat([context_outputs, input_speakers], 1)
         # project context_outputs to decoder init state
         decoder_init = self.context2decoder(context_outputs)
 
