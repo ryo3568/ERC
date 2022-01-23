@@ -128,6 +128,27 @@ if __name__ == '__main__':
         res = np.eye(6, dtype=np.int8)[res].tolist()
         return res
 
+    def create_before_labels_partner(speakers, labels):
+        res_F = [2]
+        res_M = [2]
+        for v in range(len(labels)):
+          if(speakers[v] == 'F'):
+            res_F.append(labels[v])
+          else:
+            res_M.append(labels[v])
+        index_F = 0
+        index_M = 0
+        res = []
+        for v in range(len(labels)):
+          if speakers[v] == 'F':
+            res.append(res_M[index_M])
+            index_F += 1
+          else:
+            res.append(res_F[index_F])
+            index_M += 1
+        res = np.eye(6, dtype=np.int8)[res].tolist()
+        return res
+
     def to_pickle(obj, path):
         with open(path, 'wb') as f:
             pickle.dump(obj, f)
@@ -146,6 +167,9 @@ if __name__ == '__main__':
                        for vid in iemocap.vids[split_type]]
 
         conv_before_labels_sameperson = [create_before_labels_sameperson(iemocap.videoSpeakers[vid], iemocap.videoLabels[vid])
+                                        for vid in iemocap.vids[split_type]]
+
+        conv_before_labels_partner = [create_before_labels_partner(iemocap.videoSpeakers[vid], iemocap.videoLabels[vid])
                                         for vid in iemocap.vids[split_type]]
 
 
@@ -168,6 +192,9 @@ if __name__ == '__main__':
         # fix labels as per conversation_length
         for idx, conv_len in enumerate(conversation_length):
             conv_before_labels_sameperson[idx] = conv_before_labels_sameperson[idx][:conv_len]
+          
+        for idx, conv_len in enumerate(conversation_length):
+            conv_before_labels_partner[idx] = conv_before_labels_partner[idx][:conv_len]
 
         # fix speakers as per conversation_length
         #男性 => 0  女性 => 1
@@ -185,8 +212,8 @@ if __name__ == '__main__':
         for sentence_len, label, speaker, before_label in zip(conversation_length, conv_labels, conv_speakers, conv_before_labels):
             assert(sentence_len ==len(label) and sentence_len == len(speaker) and sentence_len == len(before_label))
 
-        for sentence_len, before_label_sameperson in zip(conversation_length, conv_before_labels_sameperson):
-            assert(sentence_len == len(before_label_sameperson))
+        for sentence_len, before_label_sameperson, before_label_partner in zip(conversation_length, conv_before_labels_sameperson, conv_before_labels_partner):
+            assert(sentence_len == len(before_label_sameperson) and sentence_len == len(before_label_partner))
 
         
         print('Saving preprocessed data at', split_data_dir)
@@ -199,6 +226,8 @@ if __name__ == '__main__':
         to_pickle(conv_before_labels, split_data_dir.joinpath('before_labels.pkl'))
 
         to_pickle(conv_before_labels_sameperson, split_data_dir.joinpath('before_labels_sameperson.pkl'))
+
+        to_pickle(conv_before_labels_partner, split_data_dir.joinpath('before_labels_partner.pkl'))
         
         #話者情報を収録したファイルの作成
         to_pickle(conv_speakers, split_data_dir.joinpath('speakers.pkl'))

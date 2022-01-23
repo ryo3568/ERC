@@ -54,8 +54,8 @@ class Config(object):
         self.label_path = self.data_dir.joinpath('labels.pkl')
 
         #直前の感情系列を収録したファイルの定義
-        #修正
-        self.before_label_path = self.data_dir.joinpath('before_labels_sameperson.pkl')
+        #before_labels_sameperson or before_labels_partner
+        self.before_label_path = self.data_dir.joinpath('before_labels_partner.pkl')
 
         #話者情報を収録したファイルの定義
         self.speaker_path = self.data_dir.joinpath('speakers.pkl')
